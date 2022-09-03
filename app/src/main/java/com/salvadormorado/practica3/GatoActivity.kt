@@ -27,31 +27,43 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var textView_PuntuacionX: TextView
     private lateinit var textView4_PuntuacionO: TextView
     private lateinit var textView_Empates: TextView
+    private lateinit var textView_Tiempo:TextView
 
     private lateinit var progressBar: ProgressBar
-    private var flagAux: Boolean? = false
-    private var turno: Boolean? = false //False = Turno de jugador -  True = Turno de máquina
     private var gato = Array(3) { Array<String?>(3) { null } }
     private var contadorMovimientos: Int = 0
     private var puntuacionX: Int = 0
     private var puntuacionO: Int = 0
     private var empate: Int = 0
-    private var buttonRamdon: String = ""
+    private var myCountDownTimer:MyCountDownTimer? = null
+
+    private var flagAux: Boolean? = null
+    private var turno: Boolean? = null //False = Turno de jugador -  True = Turno de máquina
+    private var seleccionar:Boolean? = null
+    private var contador = 0
+    private var juegoTerminado: Boolean? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_gato)
+        title = "¡Juego del gato! \uD83D\uDC08"
 
         setListenersButtons()
-        flagAux = false
+
+        textView_Tiempo = findViewById(R.id.textView_Tiempo)
         textView_PuntuacionTotal = findViewById(R.id.textView_PuntuacionTotal)
         textView_PuntuacionX = findViewById(R.id.textView_PuntuacionX)
         textView4_PuntuacionO = findViewById(R.id.textView4_PuntuacionO)
         textView_Empates = findViewById(R.id.textView_Empates)
         progressBar = findViewById(R.id.progressBar)
+        progressBar.progress = contador
 
-        var myCountDownTimer = MyCountDownTimer(5000, 100)
-        myCountDownTimer.start()
+        flagAux = true //Se inicia con O
+        seleccionar = false
+        turno = false
+        juegoTerminado = false
+        myCountDownTimer = MyCountDownTimer(5000, 1000)
+        myCountDownTimer!!.start()
     }
 
     fun setListenersButtons() {
@@ -78,44 +90,45 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
         button_Reiniciar.setOnClickListener(this)
     }
 
+    fun validateTurn(i:Int, j:Int, button:Button){
+        if(!turno!!){ //turno de jugador
+            gato[i][j] = setLetterButton(button)
+            validateWinner()
+            turno = true
+            seleccionar = true
+            myCountDownTimer!!.onFinish()
+        }
+    }
+
     override fun onClick(v: View?) {
         println(v!!.id)
         when (v!!.id) {
             R.id.button_00 -> {
-                gato[0][0] = setLetterButton(button_00)
-                validateWinner()
+                validateTurn(0,0, button_00)
             }
             R.id.button_01 -> {
-                gato[0][1] = setLetterButton(button_01)
-                validateWinner()
+                validateTurn(0,1, button_01)
             }
             R.id.button_02 -> {
-                gato[0][2] = setLetterButton(button_02)
-                validateWinner()
+                validateTurn(0,2, button_02)
             }
             R.id.button_10 -> {
-                gato[1][0] = setLetterButton(button_10)
-                validateWinner()
+                validateTurn(1,0, button_10)
             }
             R.id.button_11 -> {
-                gato[1][1] = setLetterButton(button_11)
-                validateWinner()
+                validateTurn(1,1, button_11)
             }
             R.id.button_12 -> {
-                gato[1][2] = setLetterButton(button_12)
-                validateWinner()
+                validateTurn(1,2, button_12)
             }
             R.id.button_20 -> {
-                gato[2][0] = setLetterButton(button_20)
-                validateWinner()
+                validateTurn(2,0, button_20)
             }
             R.id.button_21 -> {
-                gato[2][1] = setLetterButton(button_21)
-                validateWinner()
+                validateTurn(2,1, button_21)
             }
             R.id.button_22 -> {
-                gato[2][2] = setLetterButton(button_22)
-                validateWinner()
+                validateTurn(2,2, button_22)
             }
             R.id.button_Reiniciar -> {
                 restart()
@@ -140,62 +153,73 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     fun setLetterButtonAuto() {
-        while (true) {
-            var num = (0 until 9).random()
-            println(num)
-            when (num) {
-                0 -> {
-                    if (button_00!!.text != null) {
-                        setLetterButton(button_00)
-                        break
+        if(contadorMovimientos!=9){
+            while (true) {
+                var num = (0 until 9).random()
+                println(num)
+                when (num) {
+                    0 -> {
+                        if (gato[0][0] == null) {
+                            gato[0][0]=setLetterButton(button_00)
+                            validateWinner()
+                            break
+                        }
                     }
-                }
-                1 -> {
-                    if (button_01!!.text != null) {
-                        setLetterButton(button_01)
-                        break
+                    1 -> {
+                        if (gato[0][1] == null) {
+                            gato[0][1]=setLetterButton(button_01)
+                            validateWinner()
+                            break
+                        }
                     }
-                }
-                2 -> {
-                    if (button_02!!.text != null) {
-                        setLetterButton(button_02)
-                        break
+                    2 -> {
+                        if (gato[0][2] == null) {
+                            gato[0][2]=setLetterButton(button_02)
+                            validateWinner()
+                            break
+                        }
                     }
-                }
-                3 -> {
-                    if (button_10!!.text != null) {
-                        setLetterButton(button_10)
-                        break
+                    3 -> {
+                        if (gato[1][0] == null) {
+                            gato[1][0]=setLetterButton(button_10)
+                            validateWinner()
+                            break
+                        }
                     }
-                }
-                4 -> {
-                    if (button_11!!.text != null) {
-                        setLetterButton(button_11)
-                        break
+                    4 -> {
+                        if (gato[1][1] == null) {
+                            gato[1][1]=setLetterButton(button_11)
+                            validateWinner()
+                            break
+                        }
                     }
-                }
-                5 -> {
-                    if (button_12!!.text != null) {
-                        setLetterButton(button_12)
-                        break
+                    5 -> {
+                        if (gato[1][2] == null) {
+                            gato[1][2]=setLetterButton(button_12)
+                            validateWinner()
+                            break
+                        }
                     }
-                }
-                6 -> {
-                    if (button_20!!.text != null) {
-                        setLetterButton(button_20)
-                        break
+                    6 -> {
+                        if (gato[2][0] == null) {
+                            gato[2][0]=setLetterButton(button_20)
+                            validateWinner()
+                            break
+                        }
                     }
-                }
-                7 -> {
-                    if (button_21!!.text != null) {
-                        setLetterButton(button_21)
-                        break
+                    7 -> {
+                        if (gato[2][1] == null) {
+                            gato[2][1]=setLetterButton(button_21)
+                            validateWinner()
+                            break
+                        }
                     }
-                }
-                8 -> {
-                    if (button_22!!.text != null) {
-                        setLetterButton(button_22)
-                        break
+                    8 -> {
+                        if (gato[2][2] == null) {
+                            gato[2][2]=setLetterButton(button_22)
+                            validateWinner()
+                            break
+                        }
                     }
                 }
             }
@@ -231,6 +255,17 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
 
         contadorMovimientos = 0
         flagAux = false
+        juegoTerminado = false
+        turno = false
+        seleccionar = false
+        flagAux = true
+
+        if(myCountDownTimer!=null){
+            myCountDownTimer!!.cancel()
+            progressBar.progress = 100
+            contador = 0
+            myCountDownTimer!!.start()
+        }
     }
 
     fun validateWinner() {
@@ -260,9 +295,17 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
             }
 
             if (aux == "X" || aux == "O") {
+                myCountDownTimer!!.cancel()
+                juegoTerminado = true
+                progressBar.progress = 100
+                textView_Tiempo.text = "Tiempo: 0 segundos"
                 showAlertDialogWinner(aux)
             } else if (contadorMovimientos == 9) {
                 empate++
+                myCountDownTimer!!.cancel()
+                juegoTerminado = true
+                progressBar.progress = 100
+                textView_Tiempo.text = "Tiempo: 0 segundos"
                 showAlertDialogWinner("Empate")
             }
         }
@@ -275,7 +318,7 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
                 .setMessage("El ganador es el jugador ${winner}")
                 .setPositiveButton("Aceptar") { view, _ ->
                     updateScore(winner)
-                    restart()
+                    //restart()
                     view.dismiss()
                 }
                 .setCancelable(false)
@@ -287,7 +330,7 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
                 .setMessage("Ningún jugador gano, es un empate.")
                 .setPositiveButton("Aceptar") { view, _ ->
                     updateScore(winner)
-                    restart()
+                    //restart()
                     view.dismiss()
                 }
                 .setCancelable(false)
@@ -312,18 +355,35 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
         CountDownTimer(millisInFuture, countDownInterval) {
 
         override fun onTick(millisUntilFinished: Long) {
-            //Se debe modificar, nomas falta la logica para los turnos con el tiempo
-            if (turno == false) {
-                setLetterButtonAuto()
-                turno = true
+            if(!juegoTerminado!!){
+                contador++
+                println("contador = $contador")
+                progressBar.progress = (contador * 100 / (5000 / 1000))
+                textView_Tiempo.text = "Tiempo: ${5 - contador} segundos"
             }
-            val progress = (millisUntilFinished / 50).toInt()
-            progressBar.setProgress(progressBar.getMax() - progress)
         }
 
         override fun onFinish() {
-            //finish()
-            Toast.makeText(applicationContext, "Finish progressBar.", Toast.LENGTH_SHORT).show()
+            if(!juegoTerminado!!){
+
+                myCountDownTimer!!.cancel()
+                progressBar.progress = 100
+                contador = 0
+
+                if (turno == true) {//Turno de la máquina
+                    setLetterButtonAuto()
+                    turno = false
+                    seleccionar = false
+                    myCountDownTimer!!.start()
+                }else{//Turno del jugador
+                    if(!seleccionar!!){//El jugador no selecciono
+                        setLetterButtonAuto()
+                        turno = true
+                        myCountDownTimer!!.start()
+                        myCountDownTimer!!.onFinish()
+                    }
+                }
+            }
         }
     }
 }
